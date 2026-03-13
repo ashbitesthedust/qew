@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>电影评分系统（最终稳定版）</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="box">
+        <h2>🎬 电影评分系统（已登录：<span id="uname"></span>）</h2>
+        
+        <!-- 退出登录按钮 -->
+        <button onclick="logout()" class="logout-btn">切换用户 / 退出登录</button>
+
+        <div class="search-bar">
+            <input id="keyword" placeholder="输入电影名搜索..." />
+            <button onclick="searchMovie()">搜索电影</button>
+        </div>
+
+        <div id="movieList"></div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        const realMovies = [
+            { id: 101, title: "流浪地球", release_date: "2019-02-05", vote_average: 7.9, poster_path: "" },
+            { id: 102, title: "哪吒之魔童降世", release_date: "2019-07-26", vote_average: 8.4, poster_path: "" },
+            { id: 103, title: "满江红", release_date: "2023-01-22", vote_average: 7.5, poster_path: "" },
+            { id: 104, title: "阿凡达", release_date: "2009-12-18", vote_average: 8.2, poster_path: "" },
+            { id: 105, title: "复仇者联盟4", release_date: "2019-04-24", vote_average: 8.4, poster_path: "" },
+            { id: 106, title: "星际穿越", release_date: "2014-11-07", vote_average: 9.2, poster_path: "" },
+            { id: 107, title: "盗梦空间", release_date: "2010-09-01", vote_average: 9.0, poster_path: "" },
+            { id: 108, title: "我不是药神", release_date: "2018-07-05", vote_average: 8.9, poster_path: "" }
+        ];
+
+        const username = localStorage.user;
+        if (!username) location = "login.html";
+        document.getElementById("uname").innerText = username;
+
+        // 退出登录 → 回到登录页
+        function logout() {
+            localStorage.removeItem("user");
+            alert("已退出登录，可切换用户！");
+            location.href = "login.html";
+        }
+
+        function searchMovie() {
+            const key = document.getElementById("keyword").value.toLowerCase().trim();
+            if (!key) { alert("请输入电影名"); return; }
+            const result = realMovies.filter(m => m.title.toLowerCase().includes(key));
+            renderMovies(result);
+        }
+
+        async function renderMovies(movies) {
+            const list = document.getElementById("movieList");
+            list.innerHTML = "";
+            if (movies.length === 0) { list.innerHTML = "<p style='text-align:center'>未找到电影</p>"; return; }
+
+            for (let m of movies) {
+                const ratings = await get(`/api/ratings/${m.id}`);
+                const avg = ratings.length ? (ratings.reduce((s, r) => s + r.score, 0) / ratings.length).toFixed(1) : "暂无";
+                let records = ratings.map(r => `<li>${r.username}：${r.score}分</li>`).join("") || "<li>暂无评分</li>";
+                const realScore = (m.vote_average / 2).toFixed(1);
+
+                list.innerHTML += `
+                <div class="movie-card">
+                    <div class="info">
+                        <h3>${m.title}</h3>
+                        <p>上映：${m.release_date}</p>
+                        <p>⭐ 真实评分：${realScore} / 5.0</p>
+                        <p>📊 平台平均分：${avg} / 5.0</p>
+
+                        <div class="stars">
+                            <span onclick="myRate(${m.id},1)">★</span>
+                            <span onclick="myRate(${m.id},2)">★</span>
+                            <span onclick="myRate(${m.id},3)">★</span>
+                            <span onclick="myRate(${m.id},4)">★</span>
+                            <span onclick="myRate(${m.id},5)">★</span>
+                        </div>
+
+                        <div class="record">
+                            <h4>用户评分记录</h4>
+                            <ul>${records}</ul>
+                        </div>
+                    </div>
+                </div>`;
+            }
+        }
+
+        async function myRate(movieId, score) {
+            await post("/api/ratings", { username, movieId, score });
+            searchMovie();
+        }
+    </script>
+</body>
+</html>

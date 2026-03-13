@@ -1,0 +1,32 @@
+[
+  {
+    "username": "admin",
+    "movieId": 1773365108627,
+    "score": 5
+  },
+  {
+    "username": "admin",
+    "movieId": 101,
+    "score": 2
+  },
+  {
+    "username": "admin",
+    "movieId": 102,
+    "score": 4
+  },
+  {
+    "username": "12",
+    "movieId": 101,
+    "score": 5
+  },
+  {
+    "username": "admin",
+    "movieId": 103,
+    "score": 4
+  },
+  {
+    "username": "admin",
+    "movieId": 104,
+    "score": 3
+  }
+]
